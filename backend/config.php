@@ -12,7 +12,7 @@ define('DB_PASS', '');           // Change to your MySQL password
 define('DB_CHARSET', 'utf8mb4');
 
 // OpenAI Configuration
-define('OPENAI_API_KEY', 'YOUR_OPENAI_API_KEY_HERE'); // Replace with your OpenAI API key
+define('OPENAI_API_KEY', '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'); // Replace with your OpenAI API key
 define('OPENAI_MODEL', 'gpt-3.5-turbo');
 
 // File Upload Configuration
@@ -26,15 +26,17 @@ define('APP_NAME', 'CitySync');
 define('SESSION_NAME', 'citysync_session');
 
 // CORS - allow requests from frontend
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=utf-8');
+if (PHP_SAPI !== 'cli') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    header('Content-Type: application/json; charset=utf-8');
 
-// Handle preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
+    // Handle preflight
+    if (($_SERVER['REQUEST_METHOD'] ?? null) === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
 }
 
 // Create uploads directory if it doesn't exist

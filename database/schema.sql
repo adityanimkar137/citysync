@@ -40,12 +40,13 @@ CREATE TABLE IF NOT EXISTS officers (
 );
 
 -- Seed default officers (password: officer123)
+-- Hash generated with PHP password_hash('officer123', PASSWORD_DEFAULT)
 INSERT INTO officers (username, password, department) VALUES
-('pwd_officer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'PWD'),
-('sanitation_officer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sanitation'),
-('water_officer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Water Department'),
-('electricity_officer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Electrical Department'),
-('general_officer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'General');
+('pwd_officer', '$2y$10$MjPK35Wx55Chea/PK63pcOd7./p8QdhJLADWlQ0YddFd6bWj59asq', 'PWD'),
+('sanitation_officer', '$2y$10$MjPK35Wx55Chea/PK63pcOd7./p8QdhJLADWlQ0YddFd6bWj59asq', 'Sanitation'),
+('water_officer', '$2y$10$MjPK35Wx55Chea/PK63pcOd7./p8QdhJLADWlQ0YddFd6bWj59asq', 'Water Department'),
+('electricity_officer', '$2y$10$MjPK35Wx55Chea/PK63pcOd7./p8QdhJLADWlQ0YddFd6bWj59asq', 'Electrical Department'),
+('general_officer', '$2y$10$MjPK35Wx55Chea/PK63pcOd7./p8QdhJLADWlQ0YddFd6bWj59asq', 'General');
 
 -- NOTE: Default password for all officers is: officer123
 -- Change these passwords in production!
