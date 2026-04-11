@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CitySync — Submit a Complaint</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+        <div class="logo-icon">🏙️</div>
+        <span class="brand-name">City<span>Sync</span></span>
+    </a>
+    <ul class="navbar-nav">
+        <li><a href="index.html" class="active">Submit</a></li>
+        <li><a href="dashboard.html">My Complaints</a></li>
+        <li><a href="officer.html">Officer Portal</a></li>
+    </ul>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1>Report a City Issue</h1>
+        <p>File a complaint in English, Hindi, Marathi, or Hinglish. Our AI routes it to the right department.</p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container section">
+    <div style="display:grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start;">
+
+        <!-- Complaint Form -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📝 New Complaint</h3>
+                <span id="voice-status" style="font-size:.8rem; color:var(--gray-500);"></span>
+            </div>
+            <div class="card-body">
+
+                <form id="complaint-form">
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email">Your Email <span style="color:var(--saffron)">*</span></label>
+                        <input type="email" id="email" name="email"
+                               placeholder="your@email.com"
+                               required>
+                        <p style="font-size:.78rem; color:var(--gray-500); margin-top:4px;">
+                            Your identity stays anonymous — we generate a random User ID for display.
+                        </p>
+                    </div>
+
+                    <!-- Description with Voice Input -->
+                    <div class="form-group">
+                        <label for="description">
+                            Complaint Description <span style="color:var(--saffron)">*</span>
+                        </label>
+                        <div class="input-group">
+                            <textarea id="description" name="description"
+                                      placeholder="Describe the issue… e.g. 'Sadak pe bahut bada gaddha hai junction ke paas'"
+                                      required></textarea>
+                            <button type="button" class="btn-voice" id="voice-btn"
+                                    title="Click to record voice input">
+                                🎤
+                            </button>
+                        </div>
+                        <p style="font-size:.78rem; color:var(--gray-500); margin-top:4px;">
+                            Supports English · Hindi · Marathi · Hinglish
+                        </p>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label for="location">Location (optional)</label>
+                        <input type="text" id="location" name="location"
+                               placeholder="e.g. Near Dadar Station, Mumbai">
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="form-group">
+                        <label>Photo Evidence (optional)</label>
+                        <label class="file-input-label" for="image-upload">
+                            📷 Choose Image (JPG, PNG — max 5MB)
+                        </label>
+                        <input type="file" id="image-upload" name="image"
+                               accept="image/*">
+                        <img id="image-preview" alt="Preview">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="submit-btn">
+                        <span id="submit-text">Submit Complaint</span>
+                        <span id="submit-spinner" class="spinner" style="display:none;"></span>
+                    </button>
+
+                </form>
+
+                <!-- AI Result Box (shown after submission) -->
+                <div class="ai-result" id="ai-result">
+                    <h4>⚡ AI Classification Result</h4>
+                    <div class="ai-result-grid">
+                        <div class="ai-result-item">
+                            <label>Category</label>
+                            <div class="value" id="result-category">—</div>
+                        </div>
+                        <div class="ai-result-item">
+                            <label>Priority</label>
+                            <div class="value" id="result-priority">—</div>
+                        </div>
+                        <div class="ai-result-item">
+                            <label>Routed To</label>
+                            <div class="value" id="result-department">—</div>
+                        </div>
+                        <div class="ai-result-item">
+                            <label>Your ID</label>
+                            <div class="value" id="result-anon-id">—</div>
+                        </div>
+                    </div>
+                    <p id="result-duplicate-msg" style="margin-top:.75rem; font-size:.85rem; color:var(--gold); display:none;">
+                        ⚠️ Similar complaint already exists in this area.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sidebar: How it Works -->
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+
+            <div class="card">
+                <div class="card-header"><h3>🗺️ How It Works</h3></div>
+                <div class="card-body" style="padding: 1rem 1.5rem;">
+                    <ol style="list-style:none; counter-reset:step; display:flex; flex-direction:column; gap:1rem;">
+                        <li style="display:flex; gap:12px; align-items:flex-start; counter-increment:step;">
+                            <span style="background:var(--saffron);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">1</span>
+                            <div>
+                                <strong style="font-size:.9rem;">Submit Your Complaint</strong>
+                                <p style="font-size:.82rem;color:var(--gray-500);">Describe the issue in any language. Add a photo if you have one.</p>
+                            </div>
+                        </li>
+                        <li style="display:flex; gap:12px; align-items:flex-start; counter-increment:step;">
+                            <span style="background:var(--teal);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">2</span>
+                            <div>
+                                <strong style="font-size:.9rem;">AI Auto-Classification</strong>
+                                <p style="font-size:.82rem;color:var(--gray-500);">Our AI reads the complaint and assigns category + priority.</p>
+                            </div>
+                        </li>
+                        <li style="display:flex; gap:12px; align-items:flex-start;">
+                            <span style="background:var(--navy);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">3</span>
+                            <div>
+                                <strong style="font-size:.9rem;">Routed to Department</strong>
+                                <p style="font-size:.82rem;color:var(--gray-500);">Complaint goes directly to PWD, Sanitation, Water, or Electricity dept.</p>
+                            </div>
+                        </li>
+                        <li style="display:flex; gap:12px; align-items:flex-start;">
+                            <span style="background:var(--priority-low);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">4</span>
+                            <div>
+                                <strong style="font-size:.9rem;">Track Progress</strong>
+                                <p style="font-size:.82rem;color:var(--gray-500);">View complaint status on the Dashboard with your anonymous ID.</p>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3>🏢 Departments</h3></div>
+                <div class="card-body" style="padding: 1rem 1.5rem;">
+                    <div style="display:flex; flex-direction:column; gap:.6rem;">
+                        <div style="display:flex;align-items:center;gap:10px;font-size:.88rem;">
+                            <span>🛣️</span> <strong>Road Issues</strong> → PWD
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;font-size:.88rem;">
+                            <span>🗑️</span> <strong>Garbage / Waste</strong> → Sanitation
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;font-size:.88rem;">
+                            <span>💧</span> <strong>Water / Drainage</strong> → Water Dept.
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;font-size:.88rem;">
+                            <span>⚡</span> <strong>Electricity / Lights</strong> → Electrical Dept.
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;font-size:.88rem;">
+                            <span>📋</span> <strong>Other Issues</strong> → General
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+$(document).ready(function () {
+
+    // --- Image Preview ---
+    $('#image-upload').on('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                $('#image-preview').attr('src', e.target.result).show();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- Voice Input ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'hi-IN'; // Supports Hindi + English
+
+        recognition.onresult = function (event) {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            $('#description').val(transcript);
+        };
+
+        recognition.onend = function () {
+            isRecording = false;
+            $('#voice-btn').removeClass('recording').text('🎤');
+            $('#voice-status').text('');
+        };
+
+        recognition.onerror = function (e) {
+            showToast('Voice input error: ' + e.error, 'error');
+            isRecording = false;
+            $('#voice-btn').removeClass('recording').text('🎤');
+        };
+    } else {
+        $('#voice-btn').prop('disabled', true).attr('title', 'Voice input not supported in this browser');
+    }
+
+    $('#voice-btn').on('click', function () {
+        if (!recognition) return;
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+            isRecording = true;
+            $(this).addClass('recording').text('⏹');
+            $('#voice-status').text('🔴 Listening… speak now');
+        }
+    });
+
+    // --- Complaint Form Submission ---
+    $('#complaint-form').on('submit', function (e) {
+        e.preventDefault();
+
+        const email       = $('#email').val().trim();
+        const description = $('#description').val().trim();
+
+        if (!email || !description) {
+            showToast('Please fill in email and complaint description.', 'error');
+            return;
+        }
+
+        if (description.length < 10) {
+            showToast('Description must be at least 10 characters.', 'warning');
+            return;
+        }
+
+        // Show loading
+        $('#submit-btn').prop('disabled', true);
+        $('#submit-text').text('Submitting…');
+        $('#submit-spinner').show();
+        $('#ai-result').hide();
+
+        const formData = new FormData();
+        formData.append('email',       email);
+        formData.append('description', description);
+        formData.append('location',    $('#location').val().trim());
+
+        const imageFile = $('#image-upload')[0].files[0];
+        if (imageFile) formData.append('image', imageFile);
+
+        $.ajax({
+            url:         '../backend/submit_complaint.php',
+            method:      'POST',
+            data:        formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    // Show AI result
+                    $('#result-category').text(res.category);
+                    $('#result-priority').text(res.priority);
+                    $('#result-department').text(res.department);
+                    $('#result-anon-id').text(res.anonymous_id);
+
+                    if (res.is_duplicate) {
+                        $('#result-duplicate-msg').show();
+                    }
+
+                    $('#ai-result').slideDown();
+                    showToast('✅ ' + res.message, 'success');
+
+                    // Reset form (keep email)
+                    $('#description').val('');
+                    $('#location').val('');
+                    $('#image-upload').val('');
+                    $('#image-preview').hide();
+                } else {
+                    showToast('❌ ' + (res.message || 'Submission failed.'), 'error');
+                }
+            },
+            error: function () {
+                showToast('❌ Could not connect to server. Is PHP running?', 'error');
+            },
+            complete: function () {
+                $('#submit-btn').prop('disabled', false);
+                $('#submit-text').text('Submit Complaint');
+                $('#submit-spinner').hide();
+            }
+        });
+    });
+
+});
+</script>
+
+</body>
+</html>

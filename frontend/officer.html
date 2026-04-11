@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CitySync — Officer Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        /* Officer-specific overrides */
+        .officer-header {
+            background: var(--navy);
+            color: var(--white);
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: .88rem;
+            border-bottom: 1px solid var(--navy-light);
+        }
+        .officer-header .dept-pill {
+            background: var(--saffron);
+            color: var(--white);
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: .8rem;
+        }
+
+        /* Complaints table */
+        .complaints-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+        .complaints-table th {
+            background: var(--navy);
+            color: var(--white);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: .78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .complaints-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+        }
+        .complaints-table tr:hover td {
+            background: var(--gray-100);
+        }
+        .complaints-table .desc-cell {
+            max-width: 300px;
+        }
+        .complaints-table .desc-cell p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status update row */
+        .update-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+        <div class="logo-icon">🏙️</div>
+        <span class="brand-name">City<span>Sync</span></span>
+    </a>
+    <ul class="navbar-nav">
+        <li><a href="index.html">Submit</a></li>
+        <li><a href="dashboard.html">My Complaints</a></li>
+        <li><a href="officer.html" class="active">Officer Portal</a></li>
+    </ul>
+</nav>
+
+<!-- LOGIN SECTION -->
+<div id="login-section">
+    <div class="login-page">
+        <div class="login-card">
+            <div class="logo-section">
+                <div class="logo-icon-lg">🏛️</div>
+                <h2 style="font-family:var(--font-display);">Officer Login</h2>
+                <p style="color:var(--gray-500); font-size:.9rem; margin-top:6px;">
+                    Municipal Officer Portal — CitySync
+                </p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="e.g. pwd_officer" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" style="color:var(--priority-high); font-size:.85rem; margin-bottom:.75rem; display:none;"></div>
+                <button type="submit" class="btn btn-navy btn-block btn-lg" id="login-btn">
+                    <span id="login-text">Login</span>
+                    <span id="login-spinner" class="spinner" style="display:none;"></span>
+                </button>
+            </form>
+
+            <div style="margin-top:1.5rem; padding:1rem; background:var(--gray-100); border-radius:var(--radius-sm); font-size:.8rem; color:var(--gray-700);">
+                <strong>Demo Credentials:</strong><br>
+                Username: <code>pwd_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>sanitation_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>water_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>electricity_officer</code> | Password: <code>officer123</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OFFICER DASHBOARD (shown after login) -->
+<div id="officer-section" style="display:none;">
+
+    <!-- Officer banner -->
+    <div class="officer-header">
+        <div>
+            👮 Logged in as: <strong id="officer-username">—</strong>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            Department: <span class="dept-pill" id="officer-dept-label">—</span>
+            <button class="btn btn-outline btn-sm" id="logout-btn" style="background:transparent;color:var(--gray-500);border-color:var(--navy-light);">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1 id="dept-heading">Complaints Dashboard</h1>
+            <p>Manage and update complaint statuses for your department.</p>
+        </div>
+    </div>
+
+    <div class="container section">
+
+        <!-- Stats -->
+        <div class="stats-bar" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+                <div class="stat-number" id="o-stat-total">—</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-number" id="o-stat-pending">—</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card progress">
+                <div class="stat-number" id="o-stat-progress">—</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card resolved">
+                <div class="stat-number" id="o-stat-resolved">—</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filters-bar" style="margin-bottom:1rem;">
+            <span style="font-size:.85rem; color:var(--gray-500); font-weight:500;">Filter Status:</span>
+            <button class="filter-btn active" data-ostatus="">All</button>
+            <button class="filter-btn" data-ostatus="Pending">Pending</button>
+            <button class="filter-btn" data-ostatus="In Progress">In Progress</button>
+            <button class="filter-btn" data-ostatus="Resolved">Resolved</button>
+            <button class="btn btn-outline btn-sm" id="refresh-btn" style="margin-left:auto;">🔄 Refresh</button>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="card">
+            <div id="table-container">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <span class="spinner dark" style="width:32px;height:32px;border-width:3px;"></span>
+                    </div>
+                    <p>Loading complaints…</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+$(document).ready(function () {
+
+    // Officer session (in-memory)
+    let officer = null;
+    let currentFilter = '';
+
+    // --- Login ---
+    $('#login-form').on('submit', function (e) {
+        e.preventDefault();
+
+        const username = $('#username').val().trim();
+        const password = $('#password').val().trim();
+
+        $('#login-btn').prop('disabled', true);
+        $('#login-text').text('Logging in…');
+        $('#login-spinner').show();
+        $('#login-error').hide();
+
+        $.ajax({
+            url:    '../backend/officer_login.php',
+            method: 'POST',
+            data:   { username, password },
+            success: function (res) {
+                if (res.success) {
+                    officer = res;
+                    showOfficerDashboard();
+                } else {
+                    $('#login-error').text(res.message || 'Invalid credentials.').show();
+                }
+            },
+            error: function () {
+                $('#login-error').text('Cannot connect to server.').show();
+            },
+            complete: function () {
+                $('#login-btn').prop('disabled', false);
+                $('#login-text').text('Login');
+                $('#login-spinner').hide();
+            }
+        });
+    });
+
+    // --- Logout ---
+    $('#logout-btn').on('click', function () {
+        officer = null;
+        $('#officer-section').hide();
+        $('#login-section').show();
+        showToast('Logged out successfully.', 'success');
+    });
+
+    // --- Refresh ---
+    $('#refresh-btn').on('click', function () {
+        loadOfficerComplaints();
+    });
+
+    // --- Status filter ---
+    $(document).on('click', '.filter-btn[data-ostatus]', function () {
+        $('.filter-btn[data-ostatus]').removeClass('active');
+        $(this).addClass('active');
+        currentFilter = $(this).data('ostatus');
+        loadOfficerComplaints();
+    });
+
+    function showOfficerDashboard() {
+        $('#login-section').hide();
+        $('#officer-section').show();
+        $('#officer-username').text(officer.username);
+        $('#officer-dept-label').text(officer.department);
+        $('#dept-heading').text(officer.department + ' — Complaints');
+        loadOfficerComplaints();
+    }
+
+    function loadOfficerComplaints() {
+        if (!officer) return;
+
+        $('#table-container').html(`
+            <div class="empty-state">
+                <span class="spinner dark" style="width:28px;height:28px;border-width:3px;"></span>
+                <p style="margin-top:.5rem;">Loading…</p>
+            </div>
+        `);
+
+        const params = { department: officer.department };
+        if (currentFilter) params.status = currentFilter;
+
+        $.ajax({
+            url:    '../backend/get_complaints.php',
+            method: 'GET',
+            data:   params,
+            success: function (res) {
+                if (!res.success) {
+                    showToast('Failed to load complaints.', 'error');
+                    return;
+                }
+
+                const dept = officer.department;
+                const list = res.complaints;
+
+                // Count dept-specific stats
+                const total    = list.length;
+                const pending  = list.filter(c => c.status === 'Pending').length;
+                const progress = list.filter(c => c.status === 'In Progress').length;
+                const resolved = list.filter(c => c.status === 'Resolved').length;
+
+                $('#o-stat-total').text(total);
+                $('#o-stat-pending').text(pending);
+                $('#o-stat-progress').text(progress);
+                $('#o-stat-resolved').text(resolved);
+
+                if (list.length === 0) {
+                    $('#table-container').html(`
+                        <div class="empty-state">
+                            <div class="empty-icon">✅</div>
+                            <p>No complaints for this filter.</p>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let html = `
+                <div style="overflow-x:auto;">
+                <table class="complaints-table">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Location</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                list.forEach(c => {
+                    const priorityClass = {
+                        'High':   'badge-high',
+                        'Medium': 'badge-medium',
+                        'Low':    'badge-low'
+                    }[c.priority] || 'badge-medium';
+
+                    const statusClass = {
+                        'Pending':     'status-pending',
+                        'In Progress': 'status-progress',
+                        'Resolved':    'status-resolved',
+                    }[c.status] || 'status-pending';
+
+                    const date = new Date(c.created_at).toLocaleDateString('en-IN', {
+                        day:'2-digit', month:'short', year:'numeric'
+                    });
+
+                    // Next status options
+                    const nextStatuses = ['Pending', 'In Progress', 'Resolved'].filter(s => s !== c.status);
+                    const options = nextStatuses.map(s =>
+                        `<option value="${s}">${s}</option>`
+                    ).join('');
+
+                    html += `
+                    <tr>
+                        <td style="font-weight:600; color:var(--gray-500);">#${c.id}</td>
+                        <td class="desc-cell">
+                            <p title="${escHtml(c.description)}">${escHtml(c.description)}</p>
+                            ${c.is_duplicate == 1 ? '<span class="duplicate-tag">⚠ Duplicate</span>' : ''}
+                        </td>
+                        <td>${escHtml(c.category)}</td>
+                        <td><span class="badge ${priorityClass}">${c.priority}</span></td>
+                        <td><span class="status-badge ${statusClass}">${c.status}</span></td>
+                        <td style="font-size:.82rem;">${c.location ? escHtml(c.location) : '—'}</td>
+                        <td style="font-size:.82rem; white-space:nowrap;">${date}</td>
+                        <td>
+                            <div class="update-form">
+                                <select class="status-select" data-id="${c.id}">
+                                    <option value="">Change…</option>
+                                    ${options}
+                                </select>
+                                <button class="btn btn-primary btn-sm update-status-btn" data-id="${c.id}">
+                                    Update
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table></div>';
+                $('#table-container').html(html);
+            },
+            error: function () {
+                showToast('Cannot connect to server.', 'error');
+            }
+        });
+    }
+
+    // --- Update status ---
+    $(document).on('click', '.update-status-btn', function () {
+        const btn         = $(this);
+        const complaintId = btn.data('id');
+        const newStatus   = btn.closest('.update-form').find('.status-select').val();
+
+        if (!newStatus) {
+            showToast('Please select a new status.', 'warning');
+            return;
+        }
+
+        btn.prop('disabled', true).text('…');
+
+        $.ajax({
+            url:    '../backend/update_status.php',
+            method: 'POST',
+            data:   {
+                complaint_id: complaintId,
+                status:       newStatus,
+                officer_dept: officer.department,
+            },
+            success: function (res) {
+                if (res.success) {
+                    showToast('✅ Status updated to "' + newStatus + '"', 'success');
+                    loadOfficerComplaints();
+                } else {
+                    showToast('❌ ' + (res.message || 'Update failed.'), 'error');
+                }
+            },
+            error: function () {
+                showToast('Server error.', 'error');
+            },
+            complete: function () {
+                btn.prop('disabled', false).text('Update');
+            }
+        });
+    });
+
+    function escHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+});
+</script>
+
+</body>
+</html>
