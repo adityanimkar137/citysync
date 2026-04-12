@@ -1,0 +1,4 @@
+tensorflow
+torch
+opencv-python
+numpy
