@@ -216,12 +216,16 @@ $(document).ready(function () {
             ? '<span class="duplicate-tag">⚠ Duplicate</span>'
             : '';
 
-        const imgTag = c.image_path
-            ? `<img src="../backend/${c.image_path}" class="complaint-image" alt="complaint photo">`
-            : '';
+        /*const imgTag = c.image_path
+            ? `<img src="${c.image_path}" class="complaint-image" alt="complaint photo">`
+            : '';*/
+             const imgHtml = c.image_path 
+            ? `<img src="${c.image_path}" class="complaint-img" onclick="window.open('${c.image_path}','_blank')" title="Click to view full image">`
+            : '<div style="width:60px;height:60px;background:var(--gray-200);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px;">📷</div>';
 
-        const locationTag = c.location
-            ? `<span>📍 ${escHtml(c.location)}</span>`
+
+        const locationTag = (c.address || c.location)
+            ? `<span>📍 ${escHtml(c.address || c.location)}</span>`
             : '';
 
         const date = new Date(c.created_at).toLocaleDateString('en-IN', {
@@ -239,7 +243,7 @@ $(document).ready(function () {
                 </div>
                 <span class="dept-tag">${escHtml(c.department)}</span>
             </div>
-            ${imgTag}
+            ${imgHtml}
             <p class="complaint-desc">${escHtml(c.description)}</p>
             <div class="complaint-footer">
                 <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
