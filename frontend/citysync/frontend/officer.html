@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CitySync — Officer Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        /* Officer-specific overrides */
+        .officer-header {
+            background: var(--navy);
+            color: var(--white);
+            padding: .75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: .88rem;
+            border-bottom: 1px solid var(--navy-light);
+        }
+        .officer-header .dept-pill {
+            background: var(--saffron);
+            color: var(--white);
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: .8rem;
+        }
+
+        /* Complaints table */
+        .complaints-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+        .complaints-table th {
+            background: var(--navy);
+            color: var(--white);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: .78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .complaints-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+        }
+        .complaints-table tr:hover td {
+            background: var(--gray-100);
+        }
+        .complaints-table .desc-cell {
+            max-width: 300px;
+        }
+        .complaints-table .desc-cell p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Image column */
+        .complaint-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--gray-200);
+            transition: transform .2s;
+        }
+        .complaint-img:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Status update row */
+        .update-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+        <div class="logo-icon">🏙️</div>
+        <span class="brand-name">City<span>Sync</span></span>
+    </a>
+    <ul class="navbar-nav">
+        <li><a href="index.html">Submit</a></li>
+        <li><a href="dashboard.html">My Complaints</a></li>
+        <li><a href="officer.html" class="active">Officer Portal</a></li>
+    </ul>
+</nav>
+
+<!-- LOGIN SECTION -->
+<div id="login-section">
+    <div class="login-page">
+        <div class="login-card">
+            <div class="logo-section">
+                <div class="logo-icon-lg">🏛️</div>
+                <h2 style="font-family:var(--font-display);">Officer Login</h2>
+                <p style="color:var(--gray-500); font-size:.9rem; margin-top:6px;">
+                    Municipal Officer Portal — CitySync
+                </p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="e.g. pwd_officer" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" style="color:var(--priority-high); font-size:.85rem; margin-bottom:.75rem; display:none;"></div>
+                <button type="submit" class="btn btn-navy btn-block btn-lg" id="login-btn">
+                    <span id="login-text">Login</span>
+                    <span id="login-spinner" class="spinner" style="display:none;"></span>
+                </button>
+            </form>
+
+            <div style="margin-top:1.5rem; padding:1rem; background:var(--gray-100); border-radius:var(--radius-sm); font-size:.8rem; color:var(--gray-700);">
+                <strong>Demo Credentials:</strong><br>
+                Username: <code>pwd_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>sanitation_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>water_officer</code> | Password: <code>officer123</code><br>
+                Username: <code>electricity_officer</code> | Password: <code>officer123</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OFFICER DASHBOARD (shown after login) -->
+<div id="officer-section" style="display:none;">
+
+    <!-- Officer banner -->
+    <div class="officer-header">
+        <div>
+            👮 Logged in as: <strong id="officer-username">—</strong>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            Department: <span class="dept-pill" id="officer-dept-label">—</span>
+            <button class="btn btn-outline btn-sm" id="logout-btn" style="background:transparent;color:var(--gray-500);border-color:var(--navy-light);">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1 id="dept-heading">Complaints Dashboard</h1>
+            <p>Manage and update complaint statuses for your department.</p>
+        </div>
+    </div>
+
+    <div class="container section">
+
+        <!-- Stats -->
+        <div class="stats-bar" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+                <div class="stat-number" id="o-stat-total">—</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-number" id="o-stat-pending">—</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card progress">
+                <div class="stat-number" id="o-stat-progress">—</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card resolved">
+                <div class="stat-number" id="o-stat-resolved">—</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filters-bar" style="margin-bottom:1rem;">
+            <span style="font-size:.85rem; color:var(--gray-500); font-weight:500;">Filter Status:</span>
+            <button class="filter-btn active" data-ostatus="">All</button>
+            <button class="filter-btn" data-ostatus="Pending">Pending</button>
+            <button class="filter-btn" data-ostatus="In Progress">In Progress</button>
+            <button class="filter-btn" data-ostatus="Resolved">Resolved</button>
+            <button class="btn btn-outline btn-sm" id="refresh-btn" style="margin-left:auto;">🔄 Refresh</button>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="card">
+            <div id="table-container">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <span class="spinner dark" style="width:32px;height:32px;border-width:3px;"></span>
+                    </div>
+                    <p>Loading complaints…</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/app.js"></script>
+
+<script>
+function getSeverityColor(priority) {
+    if (!priority) return '#999';
+    if (priority === 'High') return '#e74c3c';
+    if (priority === 'Medium') return '#f39c12';
+    return '#2ecc71';
+}
+</script>
+
+<script>
+// =========================================
+// OFFICER PORTAL JAVASCRIPT
+// =========================================
+
+const API_BASE = '../backend';
+const DEMO_CREDS = {
+    'pwd_officer': { pwd: 'officer123', dept: 'PWD' },
+    'sanitation_officer': { pwd: 'officer123', dept: 'Sanitation' },
+    'water_officer': { pwd: 'officer123', dept: 'Water Department' },
+    'electricity_officer': { pwd: 'officer123', dept: 'Electrical Department' }
+};
+
+// Check if already logged in
+window.addEventListener('DOMContentLoaded', () => {
+    const session = sessionStorage.getItem('officer_session');
+    if (session) {
+        const data = JSON.parse(session);
+        showDashboard(data.username, data.dept);
+    } else {
+        showLogin();
+    }
+
+    // Event Listeners
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    document.getElementById('refresh-btn').addEventListener('click', loadComplaints);
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            loadComplaints();
+        });
+    });
+});
+
+function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    const btnEl = document.getElementById('login-btn');
+    const textEl = document.getElementById('login-text');
+    const spinnerEl = document.getElementById('login-spinner');
+
+    // Validate
+    if (!DEMO_CREDS[username]) {
+        showLoginError('Invalid username');
+        return;
+    }
+    if (DEMO_CREDS[username].pwd !== password) {
+        showLoginError('Invalid password');
+        return;
+    }
+
+    // Show loading
+    textEl.style.display = 'none';
+    spinnerEl.style.display = 'inline-block';
+    btnEl.disabled = true;
+
+    // Simulate login delay
+    setTimeout(() => {
+        const dept = DEMO_CREDS[username].dept;
+        sessionStorage.setItem('officer_session', JSON.stringify({ username, dept }));
+        showDashboard(username, dept);
+        textEl.style.display = 'inline';
+        spinnerEl.style.display = 'none';
+        btnEl.disabled = false;
+    }, 500);
+}
+
+function showLoginError(msg) {
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '❌ ' + msg;
+    errEl.style.display = 'block';
+}
+
+function handleLogout() {
+    sessionStorage.removeItem('officer_session');
+    showLogin();
+}
+
+function showLogin() {
+    document.getElementById('login-section').style.display = 'block';
+    document.getElementById('officer-section').style.display = 'none';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login-error').style.display = 'none';
+}
+
+function showDashboard(username, dept) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('officer-section').style.display = 'block';
+    document.getElementById('officer-username').textContent = username;
+    document.getElementById('officer-dept-label').textContent = dept;
+    document.getElementById('dept-heading').textContent = `${dept} — Complaints Dashboard`;
+    loadComplaints();
+}
+
+function loadComplaints() {
+    const session = sessionStorage.getItem('officer_session');
+    if (!session) return;
+
+    const { dept } = JSON.parse(session);
+    const status = document.querySelector('.filter-btn.active').dataset.ostatus || '';
+
+    fetch(`${API_BASE}/get_complaints.php?department=${encodeURIComponent(dept)}&status=${encodeURIComponent(status)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                renderComplaintsTable(data.complaints, dept);
+                updateStats(data.complaints, dept);
+            } else {
+                showError('Failed to load complaints');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showError('Error loading complaints');
+        });
+}
+
+function updateStats(complaints, dept) {
+    const total = complaints.length;
+    const pending = complaints.filter(c => c.status === 'Pending').length;
+    const progress = complaints.filter(c => c.status === 'In Progress').length;
+    const resolved = complaints.filter(c => c.status === 'Resolved').length;
+
+    document.getElementById('o-stat-total').textContent = total;
+    document.getElementById('o-stat-pending').textContent = pending;
+    document.getElementById('o-stat-progress').textContent = progress;
+    document.getElementById('o-stat-resolved').textContent = resolved;
+}
+
+function renderComplaintsTable(complaints, dept) {
+    if (complaints.length === 0) {
+        document.getElementById('table-container').innerHTML = '<div class="empty-state"><p>No complaints found.</p></div>';
+        return;
+    }
+
+    let html = `
+        <table class="complaints-table">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Image</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Location</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    complaints.forEach(c => {
+        const imgHtml = c.image_path 
+            ? `<img src="${c.image_path}" class="complaint-img" onclick="window.open('${c.image_path}','_blank')" title="Click to view full image">`
+            : '<div style="width:60px;height:60px;background:var(--gray-200);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px;">📷</div>';
+
+        const submitDate = c.created_at ? new Date(c.created_at).toLocaleDateString() : '—';
+
+        html += `
+            <tr class="status-${c.status.replace(/\s+/g, '-').toLowerCase()}">
+                <td><strong>#${c.id}</strong></td>
+                <td style="padding:4px;">${imgHtml}</td>
+                <td><span class="category-badge">${c.category || '—'}</span></td>
+                <td>
+    <span style="
+        padding:4px 8px;
+        border-radius:6px;
+        color:white;
+        font-size:12px;
+        background:${getSeverityColor(c.priority)};
+    ">
+        ${c.priority ?? '—'}
+    </span>
+</td>
+                <td style="font-size:.85rem; max-width:200px;"><div class="text-truncate" title="${c.address || '—'}">${c.address || c.location || '—'}</div></td>
+        
+                <td style="max-width:200px;"><div class="text-truncate">${c.description || '—'}</div></td>
+                <td>
+                    <select class="status-select" data-id="${c.id}" data-current="${c.status}">
+                        <option value="Pending" ${c.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="In Progress" ${c.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Resolved" ${c.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                    </select>
+                </td>
+                <td style="font-size:.8rem; color:var(--gray-500);">${submitDate}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline update-btn" data-id="${c.id}">Update</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('table-container').innerHTML = html;
+
+    // Update button handlers
+    document.querySelectorAll('.update-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const complaintId = e.target.dataset.id;
+            const newStatus = document.querySelector(`select[data-id="${complaintId}"]`).value;
+            updateComplaintStatus(complaintId, newStatus);
+        });
+    });
+}
+
+function updateComplaintStatus(complaintId, newStatus) {
+    const session = sessionStorage.getItem('officer_session');
+    if (!session) {
+        showError('Session expired. Please login again.');
+        return;
+    }
+
+    const { dept } = JSON.parse(session);
+    const formData = new FormData();
+    formData.append('complaint_id', complaintId);
+    formData.append('status', newStatus);
+    formData.append('officer_dept', dept);
+
+    fetch(`${API_BASE}/update_status.php`, { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`✅ Complaint #${complaintId} updated to "${newStatus}"`);
+                loadComplaints();
+            } else {
+                showError(data.message || data.error || 'Failed to update status');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showError('Error updating complaint');
+        });
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.getElementById('toast-container').appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function showError(msg) {
+    showToast('⚠️ ' + msg);
+}
+</script>
+
+
+    
+   
+</script>
+
+</body>
+</html>
